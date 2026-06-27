@@ -146,4 +146,3 @@ This tool is designed for authorized intelligence collection only. It uses publi
 ## License
 
 MIT License. See LICENSE for details.
-```
