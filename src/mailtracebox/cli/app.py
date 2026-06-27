@@ -73,7 +73,6 @@ async def _run_scan(
 
     engine = Engine(config)
 
-    # ← SINGLE await call — no duplicate
     try:
         report = await engine.run()
     except ValueError as exc:
@@ -190,6 +189,74 @@ def config_validate(config_file: Optional[str] = typer.Option(None, "--config", 
     except ConfigurationError as exc:
         console.print(f"[red]Invalid configuration:[/red] {exc}")
         raise typer.Exit(code=1) from exc
+
+
+# ── update command ───────────────────────────────────────────────────
+
+@app.command()
+def update() -> None:
+    """Update mailtracebox to the latest version."""
+    import subprocess
+    import sys
+
+    console.print(Panel("[bold cyan]mailtracebox updater[/bold cyan]", border_style="cyan"))
+
+    repo_dir = Path(__file__).resolve().parents[3]
+    is_git = (repo_dir / ".git").is_dir()
+
+    if is_git:
+        console.print("[cyan]Git repository detected. Pulling latest changes...[/cyan]")
+        try:
+            result = subprocess.run(
+                ["git", "pull"], cwd=repo_dir,
+                capture_output=True, text=True, timeout=60,
+            )
+            if result.returncode != 0:
+                console.print(f"[red]Git pull failed:[/red] {result.stderr.strip()}")
+                raise typer.Exit(code=1)
+            if "Already up to date" in result.stdout:
+                console.print("[green]Already up to date.[/green]")
+                raise typer.Exit()
+            console.print(f"{result.stdout.strip()}")
+
+            console.print("[cyan]Reinstalling package...[/cyan]")
+            pip_result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-e", "."],
+                cwd=repo_dir, capture_output=True, text=True, timeout=120,
+            )
+            if pip_result.returncode != 0:
+                console.print(f"[red]Pip install failed:[/red] {pip_result.stderr.strip()}")
+                raise typer.Exit(code=1)
+            console.print(
+                "[green]mailtracebox updated successfully![/green]"
+                "\nRestart your shell or run: [bold]hash -r[/bold]"
+            )
+        except subprocess.TimeoutExpired:
+            console.print("[red]Update timed out. Try manually:[/red]")
+            console.print("  git pull && pip install -e .")
+            raise typer.Exit(code=1)
+    else:
+        console.print("[cyan]Updating via pip...[/cyan]")
+        try:
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "--upgrade", "mailtracebox"],
+                capture_output=True, text=True, timeout=120,
+            )
+            if result.returncode != 0:
+                console.print("[yellow]PyPI install failed, trying GitHub...[/yellow]")
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "install", "--upgrade",
+                     "git+https://github.com/msk0x/mailtracebox.git"],
+                    capture_output=True, text=True, timeout=120,
+                )
+            if result.returncode != 0:
+                console.print(f"[red]Update failed:[/red] {result.stderr.strip()}")
+                raise typer.Exit(code=1)
+            console.print("[green]mailtracebox updated successfully![/green]")
+        except subprocess.TimeoutExpired:
+            console.print("[red]Update timed out. Try manually:[/red]")
+            console.print("  pip install --upgrade mailtracebox")
+            raise typer.Exit(code=1)
 
 
 def main() -> None:

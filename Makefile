@@ -28,3 +28,6 @@ test:
 
 lint:
 	. .venv/bin/activate && ruff check src/ tests/
+
+update:
+	. .venv/bin/activate && mailtracebox update
