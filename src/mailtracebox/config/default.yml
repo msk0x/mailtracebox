@@ -1,0 +1,41 @@
+# Bundled default config — copy of the project-root config/default.yml
+general:
+  target: ""
+  output_format: "rich"
+  output_file: ""
+  verbose: false
+  debug: false
+http:
+  timeout: 30.0
+  connect_timeout: 10.0
+  max_retries: 3
+  max_concurrent: 10
+  pool_size: 100
+  user_agent: "mailtracebox/0.1.0 (OSINT Framework)"
+  rate_limit_requests: 60
+  rate_limit_window: 60.0
+  cache_enabled: true
+  cache_ttl: 300.0
+  cache_size: 1000
+  dns_cache_ttl: 3600
+  verify_ssl: true
+plugins:
+  enabled: []
+  disabled: []
+  directories: []
+  timeout: 120.0
+logging:
+  level: "INFO"
+  file: ""
+  format: "structured"
+  rich_console: true
+  log_http: false
+  log_plugins: true
+reports:
+  output_dir: "./reports"
+  include_raw_data: false
+  include_statistics: true
+  include_errors: true
+  include_timeline: true
+  include_confidence: true
+api_keys: {}
