@@ -18,15 +18,12 @@ from mailtracebox.utils.exceptions import HttpError
 
 logger = get_logger("http")
 
-# Detect brotli support once at import time
 try:
     import brotlicffi  # noqa: F401
-
     _BROTLI_AVAILABLE = True
 except ImportError:
     _BROTLI_AVAILABLE = False
 
-# Only request encodings we can actually decode
 _ACCEPT_ENCODING = "gzip, deflate, br" if _BROTLI_AVAILABLE else "gzip, deflate"
 
 
@@ -39,6 +36,7 @@ class HttpResponse:
     body: str
     url: str
     elapsed: float = 0.0
+    is_binary: bool = False
 
     @property
     def ok(self) -> bool:
@@ -117,6 +115,12 @@ class HttpClient:
         """Send a GET request."""
         return await self.request("GET", url, use_cache=use_cache, headers=headers, params=params, no_retry=no_retry)
 
+    async def head(
+        self, url: str, *, headers: dict[str, str] | None = None,
+    ) -> HttpResponse:
+        """Send a HEAD request (never cached, never retries body issues)."""
+        return await self.request("HEAD", url, use_cache=False, headers=headers, no_retry=False)
+
     async def post(
         self, url: str, *, data: Any = None, json_body: Any = None,
         headers: dict[str, str] | None = None,
@@ -153,14 +157,42 @@ class HttpClient:
             try:
                 assert self._session is not None
                 async with self._session.request(method, url, **kwargs) as resp:
-                    body = await resp.text()
-                    elapsed = time.monotonic() - start
-                    self.stats.total_time += elapsed
-                    self.stats.total_bytes += len(body)
-                    result = HttpResponse(
-                        status=resp.status, headers=dict(resp.headers),
-                        body=body, url=str(resp.url), elapsed=round(elapsed, 4),
+                    # Check content type to decide text vs binary decoding
+                    content_type = resp.headers.get("Content-Type", "")
+                    is_binary = any(
+                        t in content_type.lower()
+                        for t in ("image/", "octet-stream", "application/pdf", "application/zip")
                     )
+
+                    if is_binary or method.upper() == "HEAD":
+                        raw = await resp.read()
+                        body = f"[binary: {len(raw)} bytes, type: {content_type}]"
+                        elapsed = time.monotonic() - start
+                        self.stats.total_time += elapsed
+                        self.stats.total_bytes += len(raw)
+                        result = HttpResponse(
+                            status=resp.status, headers=dict(resp.headers),
+                            body=body, url=str(resp.url), elapsed=round(elapsed, 4),
+                            is_binary=True,
+                        )
+                    else:
+                        try:
+                            body = await resp.text()
+                        except (UnicodeDecodeError, LookupError):
+                            # Fallback: read raw bytes and decode with replace
+                            raw = await resp.read()
+                            body = raw.decode("utf-8", errors="replace")
+                            is_binary = True
+
+                        elapsed = time.monotonic() - start
+                        self.stats.total_time += elapsed
+                        self.stats.total_bytes += len(body)
+                        result = HttpResponse(
+                            status=resp.status, headers=dict(resp.headers),
+                            body=body, url=str(resp.url), elapsed=round(elapsed, 4),
+                            is_binary=is_binary,
+                        )
+
                     if resp.status == 429:
                         if no_retry:
                             logger.debug("429 for %s — skipping retry (no_retry)", url)
@@ -173,10 +205,12 @@ class HttpClient:
                         self.stats.retries += 1
                         await asyncio.sleep(retry_after)
                         continue
+
                     if use_cache and resp.status == 200 and method.upper() == "GET":
                         await self._cache.set(url, result)
-                    logger.debug("%s %s -> %d (%.3fs, %d bytes)", method, url, resp.status, elapsed, len(body))
+                    logger.debug("%s %s -> %d (%.3fs)", method, url, resp.status, elapsed)
                     return result
+
             except asyncio.TimeoutError:
                 elapsed = time.monotonic() - start
                 self.stats.errors += 1

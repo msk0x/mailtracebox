@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
-<h1 align="center">mailtracebox</h1>
+<h1 align="center">MailTraceBox</h1>
 
 <p align="center">Production-grade Email Intelligence Framework for authorized OSINT collection.</p>
 
@@ -11,7 +11,7 @@
 
 ## Overview
 
-mailtracebox takes an email address and runs 11 intelligence plugins concurrently to build a full digital footprint. Built on asyncio and aiohttp for high-performance network I/O with a plugin-based architecture that is fully extensible.
+MailTraceBox takes an email address and runs 11 intelligence plugins concurrently to build a full digital footprint. Built on asyncio and aiohttp for high-performance network I/O with a plugin-based architecture that is fully extensible.
 
 ## Features
 
@@ -44,10 +44,10 @@ mailtracebox takes an email address and runs 11 intelligence plugins concurrentl
 ### Quick Install
 
 ```bash
-git clone https://github.com/msk0x/mailtracebox.git
-cd mailtracebox
+git clone https://github.com/msk0x/MailTraceBox.git
+cd MailTraceBox
 make install
-mailtracebox scan user@example.com
+MailTraceBox scan user@example.com
 ```
 
 This uses [pipx](https://pipx.pypa.io/) to install in an isolated environment. No venv activation needed.
@@ -55,21 +55,21 @@ This uses [pipx](https://pipx.pypa.io/) to install in an isolated environment. N
 ### Manual Install (pipx)
 
 ```bash
-git clone https://github.com/msk0x/mailtracebox.git
-cd mailtracebox
+git clone https://github.com/msk0x/MailTraceBox.git
+cd MailTraceBox
 pipx install -e .
-mailtracebox scan user@example.com
+MailTraceBox scan user@example.com
 ```
 
 ### Manual Install (venv)
 
 ```bash
-git clone https://github.com/msk0x/mailtracebox.git
-cd mailtracebox
+git clone https://github.com/msk0x/MailTraceBox.git
+cd MailTraceBox
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e "."
-mailtracebox scan user@example.com
+MailTraceBox scan user@example.com
 ```
 
 For development with testing and linting tools:
@@ -85,28 +85,28 @@ Requires Python 3.11 or higher.
 
 ```bash
 # Full scan with all plugins
-mailtracebox scan user@example.com
+MailTraceBox scan user@example.com
 
 # Run specific plugins
-mailtracebox scan user@example.com --plugins account_discovery,breach_check
+MailTraceBox scan user@example.com --plugins account_discovery,breach_check
 
 # JSON output
-mailtracebox scan user@example.com --output json --output-file report.json
+MailTraceBox scan user@example.com --output json --output-file report.json
 
 # HTML output
-mailtracebox scan user@example.com --output html --output-file report.html
+MailTraceBox scan user@example.com --output html --output-file report.html
 
 # Custom config
-mailtracebox scan user@example.com --config config/local.yml
+MailTraceBox scan user@example.com --config config/local.yml
 
 # Debug mode
-mailtracebox scan user@example.com -d
+MailTraceBox scan user@example.com -d
 
 # List plugins
-mailtracebox plugins list
+MailTraceBox plugins list
 
 # Show config
-mailtracebox config show
+MailTraceBox config show
 ```
 
 ## GitHub Token
@@ -136,11 +136,11 @@ export MAILTRACEBOX_LOGGING_LEVEL=DEBUG
 
 ## Writing Plugins
 
-Drop a Python file into `src/mailtracebox/plugins/`. Plugins are auto-discovered.
+Drop a Python file into `src/MailTraceBox/plugins/`. Plugins are auto-discovered.
 
 ```python
-from mailtracebox.plugins.base import BasePlugin
-from mailtracebox.models.plugin import PluginResult, PluginStatus
+from MailTraceBox.plugins.base import BasePlugin
+from MailTraceBox.models.plugin import PluginResult, PluginStatus
 
 class MyPlugin(BasePlugin):
     @property
@@ -166,9 +166,9 @@ class MyPlugin(BasePlugin):
 
 ```bash
 pytest tests/ -v
-pytest tests/ --cov=mailtracebox --cov-report=term-missing
+pytest tests/ --cov=MailTraceBox --cov-report=term-missing
 ruff check src/ tests/
-mypy src/mailtracebox
+mypy src/MailTraceBox
 ```
 
 ## Security

@@ -46,19 +46,20 @@ class GravatarPlugin(BasePlugin):
 
         email_hash = hashlib.md5(email.strip().lower().encode()).hexdigest()
 
-        # Check if avatar exists
+        # Use HEAD request to check avatar existence (avoids binary decode crash)
         avatar_url = f"https://www.gravatar.com/avatar/{email_hash}?d=404"
-        avatar_resp = await http_client.get(avatar_url, use_cache=True)
+        avatar_resp = await http_client.head(avatar_url)
 
         if avatar_resp.status == 404:
             logger.info("No Gravatar profile for %s", email)
             return PluginResult(plugin_name=self.name, status=PluginStatus.COMPLETED, items_found=0)
 
-        # Fetch full profile
+        # Fetch full profile as JSON
         profile_url = f"https://www.gravatar.com/{email_hash}.json"
         resp = await http_client.get(profile_url, use_cache=True)
 
-        if not resp.ok:
+        if not resp.ok or resp.is_binary:
+            # No JSON profile — but avatar exists, so record that
             profile = SocialProfile(
                 platform="gravatar", username=email_hash[:12],
                 url=f"https://gravatar.com/{email_hash}",
@@ -72,7 +73,15 @@ class GravatarPlugin(BasePlugin):
             data = resp.json()
             entries = data.get("entry", [])
             if not entries:
-                return PluginResult(plugin_name=self.name, status=PluginStatus.COMPLETED, items_found=0)
+                # Avatar exists but no profile data
+                profile = SocialProfile(
+                    platform="gravatar", username=email_hash[:12],
+                    url=f"https://gravatar.com/{email_hash}",
+                    profile_image_url=f"https://www.gravatar.com/avatar/{email_hash}",
+                    source="gravatar", confidence=0.7,
+                )
+                await context.social_profiles.add(profile)
+                return PluginResult(plugin_name=self.name, status=PluginStatus.COMPLETED, items_found=1)
 
             entry = entries[0]
             accounts = entry.get("accounts", [])

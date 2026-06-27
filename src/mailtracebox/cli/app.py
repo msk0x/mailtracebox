@@ -13,7 +13,7 @@ from rich.panel import Panel
 from mailtracebox import __version__
 
 app = typer.Typer(
-    name="mailtracebox",
+    name="MailTraceBox",
     help="Email Intelligence Framework — authorized OSINT collection.",
     add_completion=False,
     rich_markup_mode="rich",
@@ -260,7 +260,7 @@ def update() -> None:
         console.print("[cyan]Updating via pip...[/cyan]")
         try:
             result = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "--upgrade", "mailtracebox"],
+                [sys.executable, "-m", "pip", "install", "--upgrade", "MailTraceBox"],
                 capture_output=True, text=True, timeout=120,
             )
             if result.returncode != 0:
