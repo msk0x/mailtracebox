@@ -18,6 +18,17 @@ from mailtracebox.utils.exceptions import HttpError
 
 logger = get_logger("http")
 
+# Detect brotli support once at import time
+try:
+    import brotlicffi  # noqa: F401
+
+    _BROTLI_AVAILABLE = True
+except ImportError:
+    _BROTLI_AVAILABLE = False
+
+# Only request encodings we can actually decode
+_ACCEPT_ENCODING = "gzip, deflate, br" if _BROTLI_AVAILABLE else "gzip, deflate"
+
 
 @dataclass(frozen=True)
 class HttpResponse:
@@ -82,8 +93,15 @@ class HttpClient:
         )
         self._session = aiohttp.ClientSession(
             connector=connector, timeout=timeout,
-            headers={"User-Agent": self._config.user_agent},
+            headers={
+                "User-Agent": self._config.user_agent,
+                "Accept-Encoding": _ACCEPT_ENCODING,
+            },
         )
+        if _BROTLI_AVAILABLE:
+            logger.debug("Brotli compression support enabled")
+        else:
+            logger.debug("Brotli not available — requesting gzip/deflate only")
         return self
 
     async def __aexit__(self, *args: Any) -> None:

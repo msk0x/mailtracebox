@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp>=3.9.0",
+    "brotlicffi>=1.1.0",
     "pydantic>=2.5.0",
     "rich>=13.7.0",
     "typer>=0.9.0",
