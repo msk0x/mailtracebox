@@ -41,12 +41,42 @@ mailtracebox takes an email address and runs 11 intelligence plugins concurrentl
 
 ## Installation
 
+### Quick Install
+
 ```bash
 git clone https://github.com/msk0x/mailtracebox.git
 cd mailtracebox
 make install
-source .venv/bin/activate
 mailtracebox scan user@example.com
+```
+
+This uses [pipx](https://pipx.pypa.io/) to install in an isolated environment. No venv activation needed.
+
+### Manual Install (pipx)
+
+```bash
+git clone https://github.com/msk0x/mailtracebox.git
+cd mailtracebox
+pipx install -e .
+mailtracebox scan user@example.com
+```
+
+### Manual Install (venv)
+
+```bash
+git clone https://github.com/msk0x/mailtracebox.git
+cd mailtracebox
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e "."
+mailtracebox scan user@example.com
+```
+
+For development with testing and linting tools:
+
+```bash
+make install-dev
+source .venv/bin/activate
 ```
 
 Requires Python 3.11 or higher.
