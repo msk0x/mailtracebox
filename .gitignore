@@ -16,7 +16,7 @@ htmlcov/
 .coverage
 coverage.xml
 *.log
-reports/
+/reports/
 .env
 *.swp
 *.swo
