@@ -44,7 +44,9 @@ mailtracebox takes an email address and runs 11 intelligence plugins concurrentl
 ```bash
 git clone https://github.com/msk0x/mailtracebox.git
 cd mailtracebox
-pip install -e ".[dev]"
+make install
+source .venv/bin/activate
+mailtracebox scan user@example.com
 ```
 
 Requires Python 3.11 or higher.
