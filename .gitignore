@@ -26,3 +26,4 @@ reports/
 config/local.yml
 
 # Add local overrides below
+*.bak
