@@ -196,6 +196,7 @@ def config_validate(config_file: Optional[str] = typer.Option(None, "--config", 
 @app.command()
 def update() -> None:
     """Update mailtracebox to the latest version."""
+    import shutil
     import subprocess
     import sys
 
@@ -203,6 +204,13 @@ def update() -> None:
 
     repo_dir = Path(__file__).resolve().parents[3]
     is_git = (repo_dir / ".git").is_dir()
+
+    # Detect if installed via pipx
+    in_pipx = "pipx" in str(Path(__file__).resolve())
+    # Detect if running inside a venv
+    in_venv = hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)
+    # Check for --break-system-packages support
+    pip_break = shutil.which("pip3") is not None
 
     if is_git:
         console.print("[cyan]Git repository detected. Pulling latest changes...[/cyan]")
@@ -220,12 +228,25 @@ def update() -> None:
             console.print(f"{result.stdout.strip()}")
 
             console.print("[cyan]Reinstalling package...[/cyan]")
+
+            if in_pipx:
+                # Installed via pipx — reinstall with pipx
+                install_cmd = ["pipx", "install", "-e", str(repo_dir), "--force"]
+            elif in_venv:
+                # Inside a virtualenv — use pip directly
+                install_cmd = [sys.executable, "-m", "pip", "install", "-e", str(repo_dir)]
+            else:
+                # System Python — use --break-system-packages
+                install_cmd = [
+                    sys.executable, "-m", "pip", "install", "-e", str(repo_dir),
+                    "--break-system-packages",
+                ]
+
             pip_result = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "-e", "."],
-                cwd=repo_dir, capture_output=True, text=True, timeout=120,
+                install_cmd, capture_output=True, text=True, timeout=120,
             )
             if pip_result.returncode != 0:
-                console.print(f"[red]Pip install failed:[/red] {pip_result.stderr.strip()}")
+                console.print(f"[red]Install failed:[/red] {pip_result.stderr.strip()}")
                 raise typer.Exit(code=1)
             console.print(
                 "[green]mailtracebox updated successfully![/green]"
