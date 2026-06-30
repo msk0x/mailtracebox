@@ -47,7 +47,7 @@ MailTraceBox takes an email address and runs 11 intelligence plugins concurrentl
 git clone https://github.com/msk0x/MailTraceBox.git
 cd MailTraceBox
 make install
-MailTraceBox scan user@example.com
+mailtracebox scan user@example.com
 ```
 
 This uses [pipx](https://pipx.pypa.io/) to install in an isolated environment. No venv activation needed.
@@ -58,7 +58,7 @@ This uses [pipx](https://pipx.pypa.io/) to install in an isolated environment. N
 git clone https://github.com/msk0x/MailTraceBox.git
 cd MailTraceBox
 pipx install -e .
-MailTraceBox scan user@example.com
+mailtracebox scan user@example.com
 ```
 
 ### Manual Install (venv)
@@ -69,7 +69,7 @@ cd MailTraceBox
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e "."
-MailTraceBox scan user@example.com
+mailtracebox scan user@example.com
 ```
 
 For development with testing and linting tools:
@@ -85,28 +85,28 @@ Requires Python 3.11 or higher.
 
 ```bash
 # Full scan with all plugins
-MailTraceBox scan user@example.com
+mailtracebox scan user@example.com
 
 # Run specific plugins
-MailTraceBox scan user@example.com --plugins account_discovery,breach_check
+mailtracebox scan user@example.com --plugins account_discovery,breach_check
 
 # JSON output
-MailTraceBox scan user@example.com --output json --output-file report.json
+mailtracebox scan user@example.com --output json --output-file report.json
 
 # HTML output
-MailTraceBox scan user@example.com --output html --output-file report.html
+mailtracebox scan user@example.com --output html --output-file report.html
 
 # Custom config
-MailTraceBox scan user@example.com --config config/local.yml
+mailtracebox scan user@example.com --config config/local.yml
 
 # Debug mode
-MailTraceBox scan user@example.com -d
+mailtracebox scan user@example.com -d
 
 # List plugins
-MailTraceBox plugins list
+mailtracebox plugins list
 
 # Show config
-MailTraceBox config show
+mailtracebox config show
 ```
 
 ## GitHub Token
